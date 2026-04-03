@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clément Guesnet - E-book Interactif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .flip-book {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            display: none;
+        }
+
+        .page {
+            background-color: white;
+            overflow: hidden;
+            border-right: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            flex-col: column;
+        }
+
+        /* Cover Styles */
+        .page-cover {
+            background: linear-gradient(135deg, #FF0050 0%, #00F2FE 100%);
+            color: white;
+            border-right: none;
+        }
+        .page-cover-inside {
+            background-color: #f8fafc;
+        }
+        .page-back-cover {
+            background: linear-gradient(135deg, #00F2FE 0%, #FF0050 100%);
+            color: white;
+        }
+        .cover-texture {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.05" fill-rule="evenodd"%3E%3Ccircle cx="3" cy="3" r="3"/%3E%3Ccircle cx="13" cy="13" r="3"/%3E%3C/g%3E%3C/svg%3E');
+            pointer-events: none;
+        }
+
+        /* Inner Page Styles */
+        .inner-page-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .page-number {
+            position: absolute;
+            bottom: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+        .page-left .page-number {
+            left: 20px;
+        }
+        .page-right .page-number {
+            right: 20px;
+        }
+        .text-content {
+            font-size: 0.7rem;
+            line-height: 1.6;
+            color: #334155;
+            text-align: justify;
+        }
+        .bon-plan-tag {
+            background: linear-gradient(90deg, #FF0050, #ff407b);
+            color: white;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flip-book" id="flip-book">
+
+        <!-- FRONT COVER -->
+        <div class="page page-cover relative flex flex-col items-center justify-between p-8 text-center" data-density="hard">
+            <div class="cover-texture"></div>
+            <div class="w-full text-left mt-4 z-10">
+                <span class="inline-block px-3 py-1 bg-white text-[#FF0050] text-xs font-bold rounded-full uppercase tracking-wider mb-4 shadow-lg">Nouvelle Édition</span>
+                <h1 class="text-6xl font-black uppercase tracking-tighter leading-[0.85] drop-shadow-lg">
+                    Student<br>Life<br><span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">Hacks</span>
+                </h1>
+            </div>
+            <div class="z-10 mt-auto mb-4 w-full">
+                <div class="h-1 w-12 bg-white mb-4 mx-auto rounded-full"></div>
+                <p class="text-sm font-semibold tracking-widest uppercase opacity-90 mb-1">Un projet par</p>
+                <p class="text-2xl font-black tracking-wide">Clément Guesnet</p>
+            </div>
+        </div>
+
+        <!-- INSIDE FRONT COVER (Blank) -->
+        <div class="page page-cover-inside p-6 flex items-center justify-center page-left" data-density="hard">
+            <p class="text-slate-300 text-xs font-bold uppercase tracking-widest text-center">Page laissée<br>intentionnellement vide</p>
+        </div>
+
+        <!-- PAGE 1: Bon Plan + Start of Text -->
+        <div class="page page-right relative">
+            <div class="inner-page-content">
+                <div class="mb-4">
+                    <span class="bon-plan-tag">Le Bon Plan du Mois</span>
+                    <h2 class="text-xl font-black text-slate-800 leading-tight mb-2">Comment optimiser son budget étudiant ?</h2>
+                    <div class="w-full h-32 rounded-lg bg-gray-200 overflow-hidden mb-3 shadow-inner">
+                        <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Finance étudiante" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <div class="text-content">
+                    <h3 class="font-bold text-slate-900 mb-1">Chapter I: General Outlines of the History of the Labor Theory of Value.</h3>
+                    <p class="mb-2"><strong>1.</strong> The following history of the labor theory of value begins with Adam Smith, not because it is supposed that Political Economy was born with the Wealth of Nations, but because no other work written affords so convenient a starting-point to the historian who has no desire to press his investigations into regions too remote from modern interests.</p>
+                    <p>After Adam Smith, the writers to be considered are Ricardo and Malthus, McCulloch, James Mill and Torrens, Senior, John Stuart Mill, and Cairnes. In the next great treatise after that of Cairnes, the Principles of Economics of Marshall, there is nothing left of the labor theory of value...</p>
+                </div>
+            </div>
+            <div class="page-number">1</div>
+        </div>
+
+        <!-- PAGE 2 -->
+        <div class="page page-left relative">
+            <div class="inner-page-content pt-8">
+                <div class="text-content">
+                    <p class="mb-2">...except a note at the end of a chapter on the general theory of the equilibrium of supply and demand. This note, “On Ricardo’s Theory of Value,” endeavors to state the ultimate relations of cost, utility and value in such a manner that Ricardo’s explanation of value is made to appear as a statement true as far as it goes, which errs only in being incomplete, and which is completed, not refuted, by the utility theory. This view will be taken up in the last chapter of the present essay.</p>
+                    <p class="mb-2">But no separate chapter is devoted to Professor Marshall’s work, because, as a matter of fact, the Ricardian labor theory finds no place in the text of his Principles. From Smith to Cairnes, the list of writers given above was selected as well calculated to exhibit the general line of development of English political economy. No attempt has been made to discover writers outside of this list, although it is not denied that such writers may not at present receive due credit for their influence upon the development of economic theory.</p>
+                    <p>Making no attempt at what might be called a discursive or extensive study of the field, this history will be confined to an intensive study of the chief writers. If it be found that certain of the above list of writers contributed nothing but error to the theory of value — and such is the case with three of them — even such a conclusion is deemed to be of historical value.</p>
+                </div>
+            </div>
+            <div class="page-number">2</div>
+        </div>
+
+        <!-- PAGE 3 -->
+        <div class="page page-right relative">
+            <div class="inner-page-content pt-8">
+                <div class="text-content">
+                    <p class="mb-2"><strong>2.</strong> With the limits of our field thus defined, attention should first be called to a fairly prevalent, but mistaken, impression regarding the so-called classical labor theory of value. It is frequently assumed that this theory of value was a simple and absolute dictum, supported in substantial unanimity by a considerable body of writers, called collectively “the classical school.”</p>
+                    <div class="w-full h-24 rounded-lg bg-gray-200 overflow-hidden my-3 shadow-inner">
+                        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Study" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-300">
+                    </div>
+                    <p class="mb-2">There is, no doubt, sufficient resemblance among these writers in their general tendencies of thought to justify the term “classical school;” but with respect to their views on the central problem of value, it is their differences of opinion that at present need emphasis, just as it is these differences which take the modern reader by surprise when he first undertakes a detailed study of their writings.</p>
+                    <p>Instead of finding the minds of the early English economists dominated by a single labor theory, having the merit of great directness and simplicity, the historian of the theory is confronted with an appalling jumble of ideas on the relation of labor to value.</p>
+                </div>
+            </div>
+            <div class="page-number">3</div>
+        </div>
+
+        <!-- PAGE 4 -->
+        <div class="page page-left relative">
+            <div class="inner-page-content pt-8">
+                <div class="text-content">
+                    <p class="mb-2">Ricardo, it is true, defended the simple thesis that the exchange value of a commodity is governed by its cost of production in labor, but it is sometimes forgotten that he hedged this doctrine about with several important qualifications and conditions. Furthermore, there was not a contemporary or subsequent writer who did not differ from Ricardo in important points of theory.</p>
+                    <p class="mb-2">Taking Smith, Malthus, Ricardo, McCulloch, Torrens, and James Mill together, we find labor sometimes conceived of as disutility cost, at other times as productive power, without any recognition of the distinction between these concepts. Yet this distinction may be of great importance in certain propositions of theory. We find McCulloch at one time claiming that the value-determining labor employed in the production of a commodity includes the operations of machines and inanimate objects...</p>
+                    <p class="mb-2">Torrens maintained that value is governed by cost of production in “accumulated” labor, and James Mill held interest on capital to be really wages of labor, an absurd thought absolutely foreign to Ricardo’s theory.</p>
+                    <p class="italic text-center mt-4 text-[#FF0050] font-bold">La suite dans le prochain numéro...</p>
+                </div>
+            </div>
+            <div class="page-number">4</div>
+        </div>
+
+        <!-- INSIDE BACK COVER -->
+        <div class="page page-cover-inside p-6 flex items-center justify-center page-right" data-density="hard">
+            <div class="text-center opacity-30">
+                <div class="text-4xl font-black mb-2">CG</div>
+                <p class="text-[0.6rem] uppercase tracking-widest font-bold">Notes & Idées</p>
+            </div>
+        </div>
+
+        <!-- BACK COVER -->
+        <div class="page page-back-cover relative flex flex-col items-center justify-center" data-density="hard">
+            <div class="cover-texture"></div>
+            <div class="text-center z-10 p-8 border-2 border-white/30 rounded-xl backdrop-blur-sm">
+                <h2 class="text-3xl font-black mb-2">Enjoy !</h2>
+                <p class="text-sm font-semibold opacity-90 mb-4">Rejoins la communauté</p>
+                <div class="px-4 py-2 bg-white text-[#FF0050] font-bold rounded-full text-xs uppercase tracking-wider cursor-pointer hover:scale-105 transition-transform">
+                    @clementguesnet
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PageFlip JS -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const flipBook = document.getElementById('flip-book');
+            flipBook.style.display = 'block';
+
+            const pageFlip = new St.PageFlip(flipBook, {
+                width: 350,
+                height: 500,
+                size: "fixed",
+                minWidth: 350,
+                maxWidth: 350,
+                minHeight: 500,
+                maxHeight: 500,
+                maxShadowOpacity: 0.5,
+                showCover: true,
+                mobileScrollSupport: true,
+                usePortrait: false // Force 2-page spread for better reading experience on desktop
+            });
+
+            pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+        });
+    </script>
+</body>
+</html>
