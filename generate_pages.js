@@ -17,13 +17,15 @@ const MAX_CHARS_PER_PAGE = 1200;
 
 html += `        <!-- PAGE ${currentPage} -->
         <div class="page page-right relative">
-            <div class="inner-page-content pt-8">
-                <div class="text-content">\n`;
+            <div class="page-paper shadow-sm">
+                <div class="inner-page-content pt-8">
+                    <div class="text-content">\n`;
 
 function startNewPage() {
-    html += `                </div>
+    html += `                    </div>
+                </div>
+                <div class="page-number">${currentPage}</div>
             </div>
-            <div class="page-number">${currentPage}</div>
         </div>\n\n`;
 
     currentPage++;
@@ -31,17 +33,26 @@ function startNewPage() {
 
     html += `        <!-- PAGE ${currentPage} -->
         <div class="page ${pageClass} relative">
-            <div class="inner-page-content pt-8">
-                <div class="text-content">\n`;
+            <div class="page-paper shadow-sm">
+                <div class="inner-page-content pt-8">
+                    <div class="text-content">\n`;
     currentLength = 0;
 }
 
 for (let i = 0; i < paragraphs.length; i++) {
     let p = paragraphs[i].trim();
 
+    let isChapter = false;
     // Check if paragraph is a new chapter heading
-    // If it is, and we aren't already at the start of a page, force a new page
-    if (p.toLowerCase().startsWith('chapter ') && currentLength > 0) {
+    if (p.toLowerCase().startsWith('chapter ')) {
+        isChapter = true;
+        if (currentLength > 0) {
+            startNewPage();
+        }
+    }
+
+    // Check if paragraph starts with "Albert C."
+    if (p.startsWith('Albert C.') && currentLength > 0) {
         startNewPage();
     }
 
@@ -57,8 +68,12 @@ for (let i = 0; i < paragraphs.length; i++) {
         const spaceLeft = MAX_CHARS_PER_PAGE - currentLength;
 
         if (p.length <= spaceLeft) {
-            html += `                    <p class="mb-2">${p}</p>\n`;
-            currentLength += p.length + 50; // Add some arbitrary buffer for margin
+            if (isChapter) {
+                html += `                        <p class="mb-6 font-bold text-[11px] leading-relaxed">${p}</p>\n`;
+            } else {
+                html += `                        <p class="mb-2">${p}</p>\n`;
+            }
+            currentLength += p.length + (isChapter ? 150 : 50); // Add extra buffer for chapter heading
             p = '';
         } else {
             // Find a space to cut the paragraph
@@ -69,16 +84,21 @@ for (let i = 0; i < paragraphs.length; i++) {
             }
 
             const chunk = p.substring(0, cutPos);
-            html += `                    <p class="mb-2">${chunk}</p>\n`;
+            if (isChapter) {
+                html += `                        <p class="mb-6 font-bold text-[11px] leading-relaxed">${chunk}</p>\n`;
+            } else {
+                html += `                        <p class="mb-2">${chunk}</p>\n`;
+            }
             p = p.substring(cutPos).trim();
             currentLength = MAX_CHARS_PER_PAGE; // Force new page on next loop
         }
     }
 }
 
-html += `                </div>
+html += `                    </div>
+                </div>
+                <div class="page-number">${currentPage}</div>
             </div>
-            <div class="page-number">${currentPage}</div>
         </div>\n`;
 
 fs.writeFileSync('generated_pages.html', html);
