@@ -113,9 +113,10 @@
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex items-center justify-center bg-[#E5F1FB] p-4">
 
-    <div class="flip-book" id="flip-book">
+    <div class="w-full max-w-[800px] flex justify-center">
+    <div class="flip-book shadow-2xl" id="flip-book">
 
         <!-- FRONT COVER -->
         <div class="page page-cover relative flex flex-col items-center justify-between p-8 text-center" data-density="hard">
@@ -1544,7 +1545,7 @@
                 width: 350,
                 height: 500,
                 size: "stretch",
-                minWidth: 400,
+                minWidth: 315,
                 maxWidth: 1000,
                 minHeight: 450,
                 maxHeight: 1000,
@@ -1558,5 +1559,6 @@
             window.pageFlip = pageFlip;
         });
     </script>
+    </div> <!-- End container -->
 </body>
 </html>
