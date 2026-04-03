@@ -39,6 +39,16 @@ function startNewPage() {
 for (let i = 0; i < paragraphs.length; i++) {
     let p = paragraphs[i].trim();
 
+    // Check if paragraph is a new chapter heading
+    // If it is, and we aren't already at the start of a page, force a new page
+    if (p.toLowerCase().startsWith('chapter ') && currentLength > 0) {
+        startNewPage();
+    }
+
+    // Format footnotes: a number immediately following a letter, period, or quote.
+    // We use a regex to replace these with <sup> tags.
+    p = p.replace(/([a-zA-Z\.”])([0-9]+)\b/g, '$1<sup>$2</sup>');
+
     while (p.length > 0) {
         if (currentLength >= MAX_CHARS_PER_PAGE) {
             startNewPage();
