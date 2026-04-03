@@ -80,32 +80,73 @@ for (let i = 0; i < paragraphs.length; i++) {
 
         const spaceLeft = MAX_CHARS_PER_PAGE - currentLength;
 
+        // If we are at the beginning of a paragraph but space left is less than a minimum threshold
+        // (e.g., 200 chars), it's not intelligent to cut it. We just start a new page instead,
+        // unless the paragraph itself is tiny.
+        if (spaceLeft < 200 && p.length > spaceLeft) {
+            startNewPage();
+            continue; // Go back to top of the while loop to check conditions again
+        }
+
+        // We will output a <p> tag first if this is the start of the paragraph
+        let pOpenTag = "";
+        let pCloseTag = "</p>\n";
+
+        if (isChapter) {
+            pOpenTag = `<p class="mb-8 font-bold text-sm leading-relaxed">`;
+        } else if (isQuote) {
+            pOpenTag = `<p class="my-4 ml-8">`;
+        } else {
+            pOpenTag = `<p class="mb-2">`;
+        }
+
         if (p.length <= spaceLeft) {
-            if (isChapter) {
-                html += `                        <p class="mb-8 font-bold text-sm leading-relaxed">${p}</p>\n`;
-            } else if (isQuote) {
-                html += `                        <p class="my-4 ml-8">${p}</p>\n`;
-            } else {
-                html += `                        <p class="mb-2">${p}</p>\n`;
-            }
+            html += `                        ${pOpenTag}${p}${pCloseTag}`;
             currentLength += p.length + (isChapter ? 150 : (isQuote ? 100 : 50));
             p = '';
         } else {
-            // Find a space to cut the paragraph
-            let cutPos = p.lastIndexOf(' ', spaceLeft);
+            // Find a space to cut the paragraph. We should try to cut on a sentence boundary
+            // if possible, to make the cut "intelligent".
+            let cutPos = -1;
+
+            // Try to find a sentence boundary (. ? ! followed by a space)
+            const sentenceRegex = /[.?!]\s/g;
+            let match;
+            while ((match = sentenceRegex.exec(p.substring(0, spaceLeft))) !== null) {
+                cutPos = match.index + 1; // Include the punctuation
+            }
+
+            // If no sentence boundary found in the available space, try finding a comma
+            if (cutPos === -1) {
+                const commaRegex = /[,;:]\s/g;
+                while ((match = commaRegex.exec(p.substring(0, spaceLeft))) !== null) {
+                    cutPos = match.index + 1;
+                }
+            }
+
+            // Fallback to finding a space
+            if (cutPos === -1) {
+                cutPos = p.lastIndexOf(' ', spaceLeft);
+            }
+
+            // Absolute fallback
             if (cutPos === -1) {
                 cutPos = spaceLeft;
             }
 
             const chunk = p.substring(0, cutPos);
-            if (isChapter) {
-                html += `                        <p class="mb-8 font-bold text-sm leading-relaxed">${chunk}</p>\n`;
-            } else if (isQuote) {
-                html += `                        <p class="my-4 ml-8">${chunk}</p>\n`;
-            } else {
-                html += `                        <p class="mb-2">${chunk}</p>\n`;
-            }
+
+            html += `                        ${pOpenTag}${chunk}${pCloseTag}`;
+
+            // Re-assign p, but next iteration should use a continuation style
+            // so there is no paragraph margin at the top of the new page.
             p = p.substring(cutPos).trim();
+            // Since it's a continuation, we remove the top margin by not having it as a chapter
+            isChapter = false;
+            // Also append a space if it starts with a letter, but trim() already took care of removing leading space.
+            // But we should use mb-0 for the chunk we just closed so it feels like a single paragraph
+            html = html.replace(/<p class="(mb-[^"]*)">([^<]*)$/, '<p class="mb-0">$2');
+
             currentLength = MAX_CHARS_PER_PAGE;
         }
     }
