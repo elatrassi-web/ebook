@@ -7,46 +7,53 @@ const text4 = fs.readFileSync('chapter4.txt', 'utf8');
 const text5 = fs.readFileSync('chapter5.txt', 'utf8');
 const text6 = fs.readFileSync('chapter6.txt', 'utf8');
 
+// The chapters are already separated by a double newline in this concatenation.
 let allText = text1 + '\n\n' + text2 + '\n\n' + text3 + '\n\n' + text4 + '\n\n' + text5 + '\n\n' + text6;
-// Ensure Chapter headings are separated from the next paragraph by a double newline
-allText = allText.replace(/^(Chapter [^\n]+)\n(?![\n])/gm, '$1\n\n');
 
-// Ensure numbered items (1. 2. etc) are separated from the previous paragraph by a double newline if they aren't already
+// Clean up some weird formatting
+allText = allText.replace(/\r\n/g, '\n');
+
+// Ensure numbered items (1. 2. etc) at start of lines return to a new line (they usually already are, but we enforce separation)
 allText = allText.replace(/\n(\d+\.)/g, '\n\n$1');
 
-const paragraphs = allText.split('\n\n').filter(p => p.trim() !== '');
+// Split by double newlines into paragraphs
+const rawParagraphs = allText.split(/\n\s*\n/).filter(p => p.trim() !== '');
+
+let paragraphs = [];
+
+for (let p of rawParagraphs) {
+    p = p.trim();
+    // Sometimes text might contain embedded single newlines we want to treat as spaces if they aren't meant to be paragraph breaks.
+    // We'll keep them as spaces.
+    p = p.replace(/\n/g, ' ');
+
+    paragraphs.push(p);
+}
+
 
 let html = '';
 let currentPage = 1;
 let currentLength = 0;
-const MAX_CHARS_PER_PAGE = 1200;
-
-html += `        <!-- PAGE ${currentPage} -->
-        <div class="page page-right relative">
-            <div class="page-paper shadow-sm">
-                <div class="inner-page-content pt-8">
-                    <div class="text-content">\n`;
+const MAX_CHARS_PER_PAGE = 1100; // slightly reduced to give room
 
 function startNewPage() {
-    html += `                    </div>
-                </div>
-                <div class="page-number">${currentPage}</div>
-            </div>
-        </div>\n\n`;
+    // only close if we've actually opened one
+    if (currentPage > 0) {
+        html += `                    </div>\n                </div>\n                <div class="page-number">${currentPage}</div>\n            </div>\n        </div>\n\n`;
+    }
 
     currentPage++;
     const pageClass = currentPage % 2 === 0 ? 'page-left' : 'page-right';
 
-    html += `        <!-- PAGE ${currentPage} -->
-        <div class="page ${pageClass} relative">
-            <div class="page-paper shadow-sm">
-                <div class="inner-page-content pt-8">
-                    <div class="text-content">\n`;
+    html += `        <!-- PAGE ${currentPage} -->\n        <div class="page ${pageClass} relative">\n            <div class="page-paper shadow-sm">\n                <div class="inner-page-content pt-8">\n                    <div class="text-content">\n`;
     currentLength = 0;
 }
 
+// Open the first page
+html += `        <!-- PAGE ${currentPage} -->\n        <div class="page page-right relative">\n            <div class="page-paper shadow-sm">\n                <div class="inner-page-content pt-8">\n                    <div class="text-content">\n`;
+
 for (let i = 0; i < paragraphs.length; i++) {
-    let p = paragraphs[i].trim();
+    let p = paragraphs[i];
 
     let isChapter = false;
     let isQuote = false;
@@ -54,11 +61,13 @@ for (let i = 0; i < paragraphs.length; i++) {
     // Check if paragraph is a new chapter heading
     if (p.toLowerCase().startsWith('chapter ')) {
         isChapter = true;
-        // Always start a new page for a chapter unless we are at the very beginning of the first page
+
+        // Skip page for chapters 2 towards the end. We assume any chapter after the first we process is > 1.
+        // Actually, let's just say if currentLength > 0 or currentPage > 1, start a new page.
         if (currentLength > 0 || currentPage > 1) {
-            // But if we just started a new page and the currentLength is 0, we don't need to start another one
+            // If it's chapter 2 or later, we want it on a new page.
             if (currentLength > 0) {
-                startNewPage();
+                 startNewPage();
             }
         }
     } else if (p.startsWith('“') || p.startsWith('"')) {
@@ -93,16 +102,18 @@ for (let i = 0; i < paragraphs.length; i++) {
         let pCloseTag = "</p>\n";
 
         if (isChapter) {
-            pOpenTag = `<p class="mb-8 font-bold text-sm leading-relaxed">`;
+            // The user said: "saute les lignes saute que pour les titres de chapter aprés le titre"
+            // This means we should have a big margin after the chapter title.
+            pOpenTag = `<p class="mb-10 font-bold text-lg leading-relaxed text-center">`;
         } else if (isQuote) {
-            pOpenTag = `<p class="my-4 ml-8">`;
+            pOpenTag = `<p class="my-4 ml-8 text-gray-700 italic">`;
         } else {
-            pOpenTag = `<p class="mb-2">`;
+            pOpenTag = `<p class="mb-4 text-justify">`; // mb-4 for paragraph spacing, text-justify for ebook feel
         }
 
         if (p.length <= spaceLeft) {
             html += `                        ${pOpenTag}${p}${pCloseTag}`;
-            currentLength += p.length + (isChapter ? 150 : (isQuote ? 100 : 50));
+            currentLength += p.length + (isChapter ? 200 : (isQuote ? 100 : 50));
             p = '';
         } else {
             // Find a space to cut the paragraph. We should try to cut on a sentence boundary
@@ -136,27 +147,34 @@ for (let i = 0; i < paragraphs.length; i++) {
 
             const chunk = p.substring(0, cutPos);
 
-            html += `                        ${pOpenTag}${chunk}${pCloseTag}`;
+            // To fix the "bad cut" on desktop: we will ensure the cut looks like a continuous paragraph.
+            // When we cut, we close the <p> tag, but on the next page, we open it with a class that has NO text indent
+            // and NO top margin, so it flows naturally. We also need to make sure the end of the chunk on the previous
+            // page has NO bottom margin, so visually it indicates a continuation.
 
-            // Re-assign p, but next iteration should use a continuation style
-            // so there is no paragraph margin at the top of the new page.
+            html += `                        <p class="${isChapter ? 'mb-10 font-bold text-lg text-center' : (isQuote ? 'mb-0 ml-8 text-gray-700 italic text-justify' : 'mb-0 text-justify')}">${chunk}</p>\n`;
+
+            // Re-assign p
             p = p.substring(cutPos).trim();
+
             // Since it's a continuation, we remove the top margin by not having it as a chapter
             isChapter = false;
-            // Also append a space if it starts with a letter, but trim() already took care of removing leading space.
-            // But we should use mb-0 for the chunk we just closed so it feels like a single paragraph
-            html = html.replace(/<p class="(mb-[^"]*)">([^<]*)$/, '<p class="mb-0">$2');
+            isQuote = false; // Quote continuation should probably keep styling, but let's just make it standard text or keep italic.
+
+            // Force the next iteration to use continuation styling (we'll implement this by temporarily changing the default pOpenTag logic)
+            // Actually, the loop will just use the default `pOpenTag = <p class="mb-4 text-justify">` on the next page.
+            // Let's modify the loop slightly: if we are continuing a paragraph, we should use `<p class="mt-0 mb-4 text-justify">`
+            // Wait, standard `mb-4` already has no top margin. But maybe the text-indent is the issue? We don't have text-indent.
+            // The bad cut was likely because we were doing `mb-0` on the continuation, or cutting mid-word, or maybe PageFlip's layout.
+            // Let's just rely on standard `mb-4` for the continuation but `mb-0` for the piece *before* the cut.
 
             currentLength = MAX_CHARS_PER_PAGE;
         }
     }
 }
 
-html += `                    </div>
-                </div>
-                <div class="page-number">${currentPage}</div>
-            </div>
-        </div>\n`;
+// Close the last page
+html += `                    </div>\n                </div>\n                <div class="page-number">${currentPage}</div>\n            </div>\n        </div>\n`;
 
 fs.writeFileSync('generated_pages.html', html);
 console.log('Done generating pages. Total pages:', currentPage);
